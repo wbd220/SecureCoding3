@@ -1,0 +1,16 @@
+language:
+  - python
+
+python:
+  - "3.7"
+
+before_install:
+  - sudo apt-get update
+
+install:
+  - pip install tox-travis
+  - pip install -r requirements.txt
+
+script:
+  - flask run &
+  - tox
