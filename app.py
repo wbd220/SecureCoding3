@@ -38,7 +38,7 @@ class SpellCheckForm(FlaskForm):
     submit = SubmitField("Check Spelling")
 
 
-userdict = {'tester': {'password': 'testpass', '2fa': '5555555555'}}  # quick comment
+userdict = {'tester': {'password': 'testpass', '2fa': '5555555555'}}
 result = ''
 success = ''
 
