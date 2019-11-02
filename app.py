@@ -142,7 +142,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     login_form = LoginForm()
-    # global userdict
+    global userdict
     if login_form.validate_on_submit():
         if login_form.uname.data in userdict:
             if userdict[login_form.uname.data]['password'] == login_form.pword.data:
