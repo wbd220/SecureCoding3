@@ -96,7 +96,7 @@ class LoginRecord(db.Model):
     user = db.relationship(User)
 
     def __repr__(self):
-        return f"login_record('{self.record_number}', '{self.userid}', '{self.time_on}', '{self.time_off}')"
+        return f"login_record('{self.record_number}', '{self.user_id}', '{self.time_on}', '{self.time_off}')"
 
 
 class SpellCheck(db.Model):
@@ -243,10 +243,11 @@ def spell_check():
 @app.route('/logout')
 def logout():
     # remove the username from the session if it is there
-    updateloginrec = LoginRecord.query.filter_by(user_id='uname').all()
-    flash(f"{updateloginrec}")
-    # updateloginrec[0].time_off = datetime.utcnow()
-    # db.session.commit()
+    name = session['uname']
+    updateloginrec = LoginRecord.query.filter_by(user_id=name, time_off=None).all()
+    updateloginrec[0].time_off = datetime.utcnow()
+    db.session.commit()
+    # tshooting - flash(f"{updateloginrec}, {name}")
     session.pop('username', None)
     return redirect(url_for('login'))
 
