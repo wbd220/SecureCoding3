@@ -81,6 +81,7 @@ class User(db.Model):
     twofa = db.Column(db.String(15), nullable=False)
     isadmin = db.Column(db.Integer, nullable=False, default=0)
     checks = db.relationship('SpellCheck', backref='check_records', lazy=True)
+    user_session = db.relationship('LoginRecord', backref='session_records', lazy=True)
 
     def __repr__(self):
         return f"User('{self.user_id}', '{self.uname}', '{self.pword}', '{self.salt})', '{self.twofa}')"
@@ -90,11 +91,12 @@ class LoginRecord(db.Model):
     __tablename__ = 'login_records'
     record_number = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
-    time_on = db.Column(db.DateTime, nullable=False)
+    time_on = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
+    time_off = db.Column(db.DateTime)
     user = db.relationship(User)
 
     def __repr__(self):
-        return f"login_record('{self.record_number}', '{self.userid}', '{self.time_on})"
+        return f"login_record('{self.record_number}', '{self.userid}', '{self.time_on}', '{self.time_off}')"
 
 
 class SpellCheck(db.Model):
@@ -156,11 +158,15 @@ def login():
             hasher.update(salt.encode('utf-8'))
             # Get the hex of the hash.
             pword_store = hasher.hexdigest()
-            flash(f"{queryforuser[0].pword}, {pword_store}")
+            # use this to see what's being compared - flash(f"{queryforuser[0].pword}, {pword_store}")
             if queryforuser[0].pword == pword_store:
                 if queryforuser[0].twofa == login_form.two_fa_field.data:
                     flash("Login successful for user {}".format(login_form.uname.data), 'success')
                     session['uname'] = login_form.uname.data  # create session cookie
+                    # create a log record  (login record)
+                    new_login = LoginRecord(user_id=login_form.uname.data)
+                    db.session.add(new_login)
+                    db.session.commit()
                     return render_template('login.html', form=login_form, result='success')
                 else:
                     flash("Login unsuccessful.  bad 2fa")
@@ -199,8 +205,7 @@ def register():
             # Store the new user in the database.
             new_user = User(uname=uname, pword=pword_store, salt=salt, twofa=twofa, isadmin=isadmin)
             db.session.add(new_user)
-            # Probably want error handling, etc. For this simplified code,
-            # we're assuming all is well.
+            # Probably want error handling, etc. For this simplified code, we're assuming all is well.
             db.session.commit()
             flash(f"Registration successful for user {register_form.uname.data} Please login")
             return render_template('register.html', form=register_form, success='success')
@@ -224,6 +229,10 @@ def spell_check():
                                         stdout=subprocess.PIPE).stdout.decode('utf-8').replace("\n", ", ").rstrip(
                 ", ")
             # spell_check_form.misspelled_stuff.data = misspelled_words
+            # log the event
+            new_query = SpellCheck(user_id='uname', input_checked=input_text,results=misspelled)
+            db.session.add(new_query)
+            db.session.commit()
             return render_template('spell_check.html', form=spell_check_form, misspelled=misspelled)
         return render_template('spell_check.html', form=spell_check_form)
     else:
@@ -234,6 +243,10 @@ def spell_check():
 @app.route('/logout')
 def logout():
     # remove the username from the session if it is there
+    updateloginrec = LoginRecord.query.filter_by(user_id='uname').all()
+    flash(f"{updateloginrec}")
+    # updateloginrec[0].time_off = datetime.utcnow()
+    # db.session.commit()
     session.pop('username', None)
     return redirect(url_for('login'))
 
