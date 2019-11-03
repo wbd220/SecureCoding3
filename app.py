@@ -94,7 +94,7 @@ class LoginRecord(db.Model):
     user = db.relationship(User)
 
     def __repr__(self):
-        return f"User('{self.record_number}', '{self.userid}', '{self.time_on})"
+        return f"login_record('{self.record_number}', '{self.userid}', '{self.time_on})"
 
 
 class SpellCheck(db.Model):
@@ -144,9 +144,21 @@ def login():
     login_form = LoginForm()
     global userdict
     if login_form.validate_on_submit():
-        if login_form.uname.data in userdict:
-            if userdict[login_form.uname.data]['password'] == login_form.pword.data:
-                if userdict[login_form.uname.data]['2fa'] == login_form.two_fa_field.data:
+        queryforuser = User.query.filter_by(uname=login_form.uname.data).all()
+        if len(queryforuser) == 1:
+            pword = login_form.pword.data
+            hasher = SHA256()
+            # Add password to hash algorithm.
+            hasher.update(pword.encode('utf-8'))
+            # Generate random salt.
+            salt = queryforuser[0].salt
+            # Add random salt to hash algorithm.
+            hasher.update(salt.encode('utf-8'))
+            # Get the hex of the hash.
+            pword_store = hasher.hexdigest()
+            flash(f"{queryforuser[0].pword}, {pword_store}")
+            if queryforuser[0].pword == pword_store:
+                if queryforuser[0].twofa == login_form.two_fa_field.data:
                     flash("Login successful for user {}".format(login_form.uname.data), 'success')
                     session['uname'] = login_form.uname.data  # create session cookie
                     return render_template('login.html', form=login_form, result='success')
@@ -167,6 +179,7 @@ def register():
     register_form = RegistrationForm()
     if register_form.validate_on_submit():
         queryforuser = User.query.filter_by(uname=register_form.uname.data).all()
+        # flash(f"your query resulted in {queryforuser}")
         if len(queryforuser) == 0:
             uname = register_form.uname.data
             pword = register_form.pword.data
