@@ -83,7 +83,7 @@ class User(db.Model):
     checks = db.relationship('SpellCheck', backref='check_records', lazy=True)
 
     def __repr__(self):
-        return f"User('{self.user_id}', '{self.uname}', '{self.pword}, '{self.salt})"
+        return f"User('{self.user_id}', '{self.uname}', '{self.pword}', '{self.salt})', '{self.twofa}')"
 
 
 class LoginRecord(db.Model):
@@ -159,16 +159,36 @@ def login():
         else:
             flash("You are not registered user, please register")
             return render_template('login.html', form=login_form, result='incorrect')
-    return render_template('login.html', form=login_form, )
+    return render_template('login.html', form=login_form,)
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     register_form = RegistrationForm()
     if register_form.validate_on_submit():
-        if register_form.uname.data not in userdict:
-            userdict[register_form.uname.data] = {'password': register_form.pword.data,
-                                                  '2fa': register_form.two_fa_field.data}
+        queryforuser = User.query.filter_by(uname=register_form.uname.data).all()
+        if len(queryforuser) == 0:
+            uname = register_form.uname.data
+            pword = register_form.pword.data
+            hasher = SHA256()
+            # Add password to hash algorithm.
+            hasher.update(pword.encode('utf-8'))
+            # Generate random salt.
+            salt = token_hex(nbytes=16)
+            # Add random salt to hash algorithm.
+            hasher.update(salt.encode('utf-8'))
+            # Get the hex of the hash.
+            pword_store = hasher.hexdigest()
+            # Add a two factor auth number
+            twofa = register_form.two_fa_field.data
+            # Is an admin? 0 is no; 1 is yes
+            isadmin = 0
+            # Store the new user in the database.
+            new_user = User(uname=uname, pword=pword_store, salt=salt, twofa=twofa, isadmin=isadmin)
+            db.session.add(new_user)
+            # Probably want error handling, etc. For this simplified code,
+            # we're assuming all is well.
+            db.session.commit()
             flash(f"Registration successful for user {register_form.uname.data} Please login")
             return render_template('register.html', form=register_form, success='success')
         else:
