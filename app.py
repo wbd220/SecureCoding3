@@ -280,7 +280,7 @@ def login_history():
         if login_history_form.validate_on_submit():
             user4history = login_history_form.userid.data  # put text from form into a field
             loginhistoryquery = LoginRecord.query.filter_by(user_id=user4history).all()
-            flash(f"{loginhistoryquery} {user4history}")
+            # flash(f"{loginhistoryquery} {user4history}")
             return render_template('login_history.html', form=login_history_form, loginhistory=loginhistoryquery)
         return render_template('login_history.html', form=login_history_form)
     else:
@@ -288,7 +288,7 @@ def login_history():
         return redirect(url_for('login'))
 
 
-# @app.route("/history/query#")
+# @app.route("/history/query<var>")
 # def query():
 
 setup_db()

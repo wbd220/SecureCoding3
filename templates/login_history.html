@@ -25,7 +25,12 @@
     <ul>
     <li id="login{{ x.record_number }}">record num: {{ x.record_number }}</li>
     <li id="login{{ x.record_number }}_time">login time:  {{ x.time_on }}</li>
-    <li id="logout{{ x.record_number }}_time">logout time: {{ x.time_off }}</li>
+    {% set logoff %}{{ x.time_off }}{% endset %}
+    {% if logoff == "None" %}
+        <li id="logout{{ x.record_number }}_time">logout time: N/A</li>
+    {% else %}
+        <li id="logout{{ x.record_number }}_time">logout time: {{ x.time_off }}</li>
+    {% endif %}
     </ul>
     {% endfor %}
  {% endblock %}
