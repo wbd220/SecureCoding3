@@ -72,6 +72,7 @@ def setup_db():
     # we're assuming all is well.
     db.session.commit()
 
+
 class User(db.Model):
     __tablename__ = 'users'
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -109,6 +110,7 @@ class SpellCheck(db.Model):
     def __repr__(self):
         return f"SpellCheck('{self.record_number}', '{self.userid}', '{self.input_checked}', '{self.results}')"
 
+
 # forms used in templates
 class LoginForm(FlaskForm):
     uname = StringField('uname', validators=[DataRequired()])
@@ -126,8 +128,13 @@ class RegistrationForm(FlaskForm):
 
 
 class SpellCheckForm(FlaskForm):
-    inputtext = TextAreaField('inputtext', render_kw={"rows": 15, "cols": 45})
+    inputtext = TextAreaField('userid', render_kw={"rows": 15, "cols": 45})
     submit = SubmitField("Check Spelling")
+
+
+class LoginHistoryForm(FlaskForm):
+    userid = StringField('userid', validators=[DataRequired()])
+    submit = SubmitField("User Login History")
 
 
 userdict = {'tester': {'password': 'testpass', '2fa': '5555555555'}}
@@ -177,7 +184,7 @@ def login():
         else:
             flash("You are not registered user, please register")
             return render_template('login.html', form=login_form, result='incorrect')
-    return render_template('login.html', form=login_form,)
+    return render_template('login.html', form=login_form, )
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -230,7 +237,7 @@ def spell_check():
                 ", ")
             # spell_check_form.misspelled_stuff.data = misspelled_words
             # log the event
-            new_query = SpellCheck(user_id='uname', input_checked=input_text,results=misspelled)
+            new_query = SpellCheck(user_id='uname', input_checked=input_text, results=misspelled)
             db.session.add(new_query)
             db.session.commit()
             return render_template('spell_check.html', form=spell_check_form, misspelled=misspelled)
@@ -259,12 +266,26 @@ def logout():
 # and enter a query review page, described in the next subsection.
 
 
-# @app.route('login_history')
-# def login_history():
-# admins should be able to access the login history of a given user
-# page should contain a form with id=userid that an admin can fill in to get the login history of a given user
-# history should be returned in a list: id=login#  id=login#_time   id=logout#_time
-# user is still logged in logout is 'N/A'
+@app.route('/login_history', methods=['GET', 'POST'])
+def login_history():
+    # admins should be able to access the login history of a given user
+    # page should contain a form with id=userid that an admin can fill in to get the login history of a given user
+    # history should be returned in a list: id=login#  id=login#_time   id=logout#_time
+    # user is still logged in logout is 'N/A'
+    # is user an admin?  let's pull up their info
+    name = session['uname']
+    queryforuser = User.query.filter_by(uname=name).all()
+    if queryforuser[0].isadmin == 1:
+        login_history_form = LoginHistoryForm()
+        if login_history_form.validate_on_submit():
+            user4history = login_history_form.userid.data  # put text from form into a field
+            loginhistoryquery = LoginRecord.query.filter_by(user_id=user4history).all()
+            flash(f"{loginhistoryquery} {user4history}")
+            return render_template('login_history.html', form=login_history_form, loginhistory=loginhistoryquery)
+        return render_template('login_history.html', form=login_history_form)
+    else:
+        flash("You are not admin, access to login history not permitted. Please log with admin account")
+        return redirect(url_for('login'))
 
 
 # @app.route("/history/query#")
