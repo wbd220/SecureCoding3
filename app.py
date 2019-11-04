@@ -50,7 +50,7 @@ def setup_db():
     # we're assuming all is well.
     db.session.commit()
     # add tester2 (non-admin account)
-    uname = 'tester2'
+    uname = 'tester5'
     pword = 'testpass'
     hasher = SHA256()
     # Add password to hash algorithm.
@@ -98,8 +98,8 @@ def setup_db():
     new_query1 = SpellCheck(user_id='tester', input_checked='wrods aer worng1', results='wrods, aer, worng1')
     new_query2 = SpellCheck(user_id='tester', input_checked='wrods aer worng2', results='wrods, aer, worng2')
     new_query3 = SpellCheck(user_id='admin', input_checked='wrods aer worng3', results='wrods, aer, worng3')
-    new_query4 = SpellCheck(user_id='tester2', input_checked='wrods aer worng4', results='wrods, aer, worng4')
-    new_query5 = SpellCheck(user_id='tester2', input_checked='wrods aer worng5', results='wrods, aer, worng5')
+    new_query4 = SpellCheck(user_id='tester5', input_checked='wrods aer worng4', results='wrods, aer, worng4')
+    new_query5 = SpellCheck(user_id='tester5', input_checked='wrods aer worng5', results='wrods, aer, worng5')
     db.session.add(new_query1)
     db.session.add(new_query2)
     db.session.add(new_query3)
