@@ -291,13 +291,6 @@ def logout():
     return redirect(url_for('login'))
 
 
-# @app.route('/history')
-# def history():
-# publish history total number of queries in an element with id=numqueries.   presented in an element with
-# id=query# where # is a unique identifier for that query. The user can click on any given query
-# and enter a query review page, described in the next subsection.
-
-
 @app.route('/login_history', methods=['GET', 'POST'])
 def login_history():
     # admins should be able to access the login history of a given user
@@ -305,19 +298,30 @@ def login_history():
     # history should be returned in a list: id=login#  id=login#_time   id=logout#_time
     # user is still logged in logout is 'N/A'
     # is user an admin?  let's pull up their info
-    name = session['uname']
-    queryforuser = User.query.filter_by(uname=name).all()
-    if queryforuser[0].isadmin == 1:
-        login_history_form = LoginHistoryForm()
-        if login_history_form.validate_on_submit():
-            user4history = login_history_form.userid.data  # put text from form into a field
-            loginhistoryquery = LoginRecord.query.filter_by(user_id=user4history).all()
-            # flash(f"{loginhistoryquery} {user4history}")
-            return render_template('login_history.html', form=login_history_form, loginhistory=loginhistoryquery)
-        return render_template('login_history.html', form=login_history_form)
+    if 'uname' in session:
+        name = session['uname']
+        queryforuser = User.query.filter_by(uname=name).all()
+        if queryforuser[0].isadmin == 1:
+            login_history_form = LoginHistoryForm()
+            if login_history_form.validate_on_submit():
+                user4history = login_history_form.userid.data  # put text from form into a field
+                loginhistoryquery = LoginRecord.query.filter_by(user_id=user4history).all()
+                # flash(f"{loginhistoryquery} {user4history}")
+                return render_template('login_history.html', form=login_history_form, loginhistory=loginhistoryquery)
+            return render_template('login_history.html', form=login_history_form)
+        else:
+            flash("You are not admin, access to login history not permitted. Please log with admin account")
+            return redirect(url_for('login'))
     else:
-        flash("You are not admin, access to login history not permitted. Please log with admin account")
+        flash("You are not logged in, Please log in")
         return redirect(url_for('login'))
+
+
+# @app.route('/history')
+# def history():
+# publish history total number of queries in an element with id=numqueries.   presented in an element with
+# id=query# where # is a unique identifier for that query. The user can click on any given query
+# and enter a query review page, described in the next subsection.
 
 
 # @app.route("/history/query<var>")
