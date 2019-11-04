@@ -171,9 +171,6 @@ class LoginHistoryForm(FlaskForm):
     userid = StringField('userid', validators=[DataRequired()])
     submit = SubmitField("User Login History")
 
-
-userdict = {'tester': {'password': 'testpass', '2fa': '5555555555'}}
-
 result = ''
 success = ''
 
@@ -186,7 +183,6 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     login_form = LoginForm()
-    global userdict
     if login_form.validate_on_submit():
         queryforuser = User.query.filter_by(uname=login_form.uname.data).all()
         if len(queryforuser) == 1:
