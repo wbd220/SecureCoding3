@@ -49,7 +49,29 @@ def setup_db():
     # Probably want error handling, etc. For this simplified code,
     # we're assuming all is well.
     db.session.commit()
-    # add tester (non-admin account)
+    # add tester2 (non-admin account)
+    uname = 'tester2'
+    pword = 'testpass'
+    hasher = SHA256()
+    # Add password to hash algorithm.
+    hasher.update(pword.encode('utf-8'))
+    # Generate random salt.
+    salt = token_hex(nbytes=16)
+    # Add random salt to hash algorithm.
+    hasher.update(salt.encode('utf-8'))
+    # Get the hex of the hash.
+    pword_store = hasher.hexdigest()
+    # Add a two factor auth number
+    twofa = '2222222222'
+    # Is an admin? 0 is no; 1 is yes
+    isadmin = 0
+    # Store the new user in the database.
+    new_user = User(uname=uname, pword=pword_store, salt=salt, twofa=twofa, isadmin=isadmin)
+    db.session.add(new_user)
+    # Probably want error handling, etc. For this simplified code,
+    # we're assuming all is well.
+    db.session.commit()
+    # add admin (admin account)
     uname = 'admin'
     pword = 'Administrator@1'
     hasher = SHA256()
@@ -70,6 +92,19 @@ def setup_db():
     db.session.add(new_user)
     # Probably want error handling, etc. For this simplified code,
     # we're assuming all is well.
+    db.session.commit()
+
+    # create some test query's
+    new_query1 = SpellCheck(user_id='tester', input_checked='wrods aer worng1', results='wrods, aer, worng1')
+    new_query2 = SpellCheck(user_id='tester', input_checked='wrods aer worng2', results='wrods, aer, worng2')
+    new_query3 = SpellCheck(user_id='admin', input_checked='wrods aer worng3', results='wrods, aer, worng3')
+    new_query4 = SpellCheck(user_id='tester2', input_checked='wrods aer worng4', results='wrods, aer, worng4')
+    new_query5 = SpellCheck(user_id='tester2', input_checked='wrods aer worng5', results='wrods, aer, worng5')
+    db.session.add(new_query1)
+    db.session.add(new_query2)
+    db.session.add(new_query3)
+    db.session.add(new_query4)
+    db.session.add(new_query5)
     db.session.commit()
 
 
@@ -237,7 +272,8 @@ def spell_check():
                 ", ")
             # spell_check_form.misspelled_stuff.data = misspelled_words
             # log the event
-            new_query = SpellCheck(user_id='uname', input_checked=input_text, results=misspelled)
+            name = session['uname']
+            new_query = SpellCheck(user_id=name, input_checked=input_text, results=misspelled)
             db.session.add(new_query)
             db.session.commit()
             return render_template('spell_check.html', form=spell_check_form, misspelled=misspelled)
