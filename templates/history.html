@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Query History{% endblock %}
+{% block title %}History Page{% endblock %}
 
 {% block content %}
         {% with messages = get_flashed_messages(with_categories = true) %}
@@ -12,25 +12,19 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    <h1>Welcome to the WBD220 Query History Page, Admins welcome!</h1>
-    <form action="" method="post">
+    <h1>Welcome to the WBD220 Query History Page</h1>
+    <form>
         {{ form.hidden_tag() }}
-        <p id="userid">
-            {{ form.userid.label }}<br>
-            {{ form.userid(size=32) }}
-        </p>
-        <p>{{ form.submit() }}</p>
+    <p>
+        {{ form.userquery }}<br>
+        {{ form.submit }}
+    </p>
     </form>
-    {% for x in loginhistory %}
-    <ul>
-    <li id="login{{ x.record_number }}">record num: {{ x.record_number }}</li>
-    <li id="login{{ x.record_number }}_time">login time:  {{ x.time_on }}</li>
-    {% set logoff %}{{ x.time_off }}{% endset %}
-    {% if logoff == "None" %}
-        <li id="logout{{ x.record_number }}_time">logout time: N/A</li>
-    {% else %}
-        <li id="logout{{ x.record_number }}_time">logout time: {{ x.time_off }}</li>
-    {% endif %}
-    </ul>
+    <p> number of queries: {{ numberofquery }}</p>
+    {% for x in queryhistoryquery %}
+    <p>
+        <a href="http://127.0.0.1:5000/history/query{{ x.record_number }}" id="query{{ x.record_number }}">
+            "Query{{ x.record_number }}"</a><br>
+    </p>
     {% endfor %}
- {% endblock %}
+{% endblock %}

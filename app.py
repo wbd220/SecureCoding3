@@ -120,7 +120,8 @@ class User(db.Model):
     user_session = db.relationship('LoginRecord', backref='session_records', lazy=True)
 
     def __repr__(self):
-        return f"User('{self.user_id}', '{self.uname}', '{self.pword}', '{self.salt})', '{self.twofa}')"
+        return f"User('{self.user_id}', '{self.uname}', '{self.pword}', '{self.salt})', '{self.twofa}'," \
+               f" '{self.isadmin}')"
 
 
 class LoginRecord(db.Model):
@@ -143,7 +144,7 @@ class SpellCheck(db.Model):
     results = db.Column(db.Text, nullable=False)
 
     def __repr__(self):
-        return f"SpellCheck('{self.record_number}', '{self.userid}', '{self.input_checked}', '{self.results}')"
+        return f"SpellCheck('{self.record_number}', '{self.user_id}', '{self.input_checked}', '{self.results}')"
 
 
 # forms used in templates
@@ -170,6 +171,12 @@ class SpellCheckForm(FlaskForm):
 class LoginHistoryForm(FlaskForm):
     userid = StringField('userid', validators=[DataRequired()])
     submit = SubmitField("User Login History")
+
+
+class QueryHistoryForm(FlaskForm):
+    userquery = StringField('userquery', id='userquery', validators=[DataRequired()])
+    submit = SubmitField("User Query History")
+
 
 result = ''
 success = ''
@@ -299,10 +306,10 @@ def login_history():
     # user is still logged in logout is 'N/A'
     # is user an admin?  let's pull up their info
     if 'uname' in session:
+        login_history_form = LoginHistoryForm()
         name = session['uname']
         queryforuser = User.query.filter_by(uname=name).all()
         if queryforuser[0].isadmin == 1:
-            login_history_form = LoginHistoryForm()
             if login_history_form.validate_on_submit():
                 user4history = login_history_form.userid.data  # put text from form into a field
                 loginhistoryquery = LoginRecord.query.filter_by(user_id=user4history).all()
@@ -317,15 +324,45 @@ def login_history():
         return redirect(url_for('login'))
 
 
-# @app.route('/history')
-# def history():
-# publish history total number of queries in an element with id=numqueries.   presented in an element with
-# id=query# where # is a unique identifier for that query. The user can click on any given query
-# and enter a query review page, described in the next subsection.
+@app.route('/history', methods=['GET', 'POST'])
+def history():
+    # publish history total number of queries in an element with id=numqueries.   presented in an element with
+    # id=query# where # is a unique identifier for that query. The user can click on any given query
+    # and enter a query review page, described in the next subsection.
+    if 'uname' in session:
+        query_history_form = QueryHistoryForm()
+        name = session['uname']  # create variable for userID
+        queryforuser = User.query.filter_by(uname=name).all()  # do a query on them to know if they are admin
+        flash(f"{queryforuser[0].isadmin}")
+        if query_history_form.validate_on_submit():
+            if queryforuser[0].isadmin == 1:
+                userwearequeryingfor = query_history_form.userquery.data
+                queryhistoryquery = SpellCheck.query.filter_by(user_id=userwearequeryingfor).all()
+                flash(f"{queryhistoryquery} {name} ")
+                numberofquery = len(queryhistoryquery)
+                return render_template('history.html', numberofquery=numberofquery, queryhistoryquery=queryhistoryquery,
+                                       form=query_history_form)
+            else:
+                flash(f"You are not admin, access to other's queries is not permitted. Please log with admin account")
+                return redirect(url_for('history'))
+        else:
+            # present their query history to them
+            queryhistoryquery = SpellCheck.query.filter_by(user_id=name).all()
+            flash(f"{queryhistoryquery} {name} ")
+            numberofquery = len(queryhistoryquery)
+            return render_template('history.html', numberofquery=numberofquery, queryhistoryquery=queryhistoryquery,
+                                   form=query_history_form)
 
 
-# @app.route("/history/query<var>")
-# def query():
+@app.route('/history/query<var>')
+def query(var=None):
+    if 'uname' in session:
+        name = session['uname']
+        queryhistoryquery = SpellCheck.query.filter_by(record_number=var).all()
+        flash(f"{queryhistoryquery} {name}")
+        return render_template('query.html', record_number=queryhistoryquery[0].record_number, user_id=name,
+                               input_checked=queryhistoryquery[0].input_checked, results=queryhistoryquery[0].results)
+
 
 setup_db()
 if __name__ == '__main__':

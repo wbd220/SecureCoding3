@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}History Page{% endblock %}
+
+{% block content %}
+        {% with messages = get_flashed_messages(with_categories = true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div>
+            {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <h1>Welcome to the WBD220 Individual Query Detail Page</h1>
+    <ul>
+    <li id="queryid">record number:     {{ record_number }}</li>
+    <li id="username">User name is:     {{ user_id }}</li>
+    <li id="querytext">input checked:     {{ input_checked }}</li>
+    <li id="queryresults">results:     {{ results }}</li>
+    </ul>
+ {% endblock %}
