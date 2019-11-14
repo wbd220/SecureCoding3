@@ -120,8 +120,7 @@ class User(db.Model):
     user_session = db.relationship('LoginRecord', backref='session_records', lazy=True)
 
     def __repr__(self):
-        return f"User('{self.user_id}', '{self.uname}', '{self.pword}', '{self.salt})', '{self.twofa}'" \
-               f" '{self.isadmin}')"
+        return f"User('{self.user_id}', '{self.uname}', '{self.pword}', '{self.salt})', '{self.twofa}', '{self.isadmin}')"
 
 
 class LoginRecord(db.Model):
