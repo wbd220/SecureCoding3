@@ -173,7 +173,7 @@ class LoginHistoryForm(FlaskForm):
 
 
 class QueryHistoryForm(FlaskForm):
-    userquery = StringField('userquery', id='userquery', validators=[DataRequired()])
+    userquery = StringField('userquery', id='userquery')
     submit = SubmitField("User Query History")
 
 
@@ -251,10 +251,10 @@ def register():
             db.session.add(new_user)
             # Probably want error handling, etc. For this simplified code, we're assuming all is well.
             db.session.commit()
-            # flash(f"Registration successful for user {register_form.uname.data} Please login")
+            flash(f"Registration successful for user {register_form.uname.data} Please login")
             return render_template('register.html', form=register_form, success='success')
         else:
-            # flash(f"User {register_form.uname.data} already registered")
+            flash(f"User {register_form.uname.data} already registered")
             return render_template('register.html', form=register_form, success='failure')
     return render_template('register.html', form=register_form)
 
@@ -281,7 +281,7 @@ def spell_check():
             return render_template('spell_check.html', form=spell_check_form, misspelled=misspelled)
         return render_template('spell_check.html', form=spell_check_form)
     else:
-        # flash("You are not logged in, Please log in")
+        flash("You are not logged in, Please log in")
         return redirect(url_for('login'))
 
 
@@ -312,14 +312,14 @@ def login_history():
             if login_history_form.validate_on_submit():
                 user4history = login_history_form.userid.data  # put text from form into a field
                 loginhistoryquery = LoginRecord.query.filter_by(user_id=user4history).all()
-                # flash(f"{loginhistoryquery} {user4history}")
+                flash(f"{loginhistoryquery} {user4history}")
                 return render_template('login_history.html', form=login_history_form, loginhistory=loginhistoryquery)
             return render_template('login_history.html', form=login_history_form)
         else:
-            # flash("You are not admin, access to login history not permitted. Please log with admin account")
+            flash("You are not admin, access to login history not permitted. Please log with admin account")
             return redirect(url_for('login'))
     else:
-        # flash("You are not logged in, Please log in")
+        flash("You are not logged in, Please log in")
         return redirect(url_for('login'))
 
 
@@ -332,22 +332,22 @@ def history():
         query_history_form = QueryHistoryForm()
         name = session['uname']  # create variable for userID
         queryforuser = User.query.filter_by(uname=name).all()  # do a query on them to know if they are admin
-        # flash(f"{queryforuser[0].isadm}")
+        flash(f"{queryforuser[0].isadm}")
         if query_history_form.validate_on_submit():
-            if queryforuser[0].isadm == 1:
+            if queryforuser[0].isadm != 0:
                 userwearequeryingfor = query_history_form.userquery.data
                 queryhistoryquery = SpellCheck.query.filter_by(user_id=userwearequeryingfor).all()
-                # flash(f"{queryhistoryquery} {name} ")
+                flash(f"{queryhistoryquery} {userwearequeryingfor} ")
                 numberofquery = len(queryhistoryquery)
                 return render_template('history.html', numberofquery=numberofquery, queryhistoryquery=queryhistoryquery,
                                        form=query_history_form)
             else:
-                # flash(f"You are not admin, access to other's queries is not permitted. Please log with admin account")
+                flash(f"You are not admin, access to other's queries is not permitted. Please log with admin account")
                 return redirect(url_for('history'))
         else:
             # present their query history to them
             queryhistoryquery = SpellCheck.query.filter_by(user_id=name).all()
-            # flash(f"{queryhistoryquery} {name} ")
+            flash(f"{queryhistoryquery} {name} ")
             numberofquery = len(queryhistoryquery)
             return render_template('history.html', numberofquery=numberofquery, queryhistoryquery=queryhistoryquery,
                                    form=query_history_form)
@@ -358,11 +358,13 @@ def query(var=None):
     if 'uname' in session:
         name = session['uname']
         queryhistoryquery = SpellCheck.query.filter_by(record_number=var).all()
-        # flash(f"{queryhistoryquery} {name}")
-        return render_template('query.html', record_number=queryhistoryquery[0].record_number, user_id=name,
-                               input_checked=queryhistoryquery[0].input_checked, results=queryhistoryquery[0].results)
+        flash(f"{queryhistoryquery} {name}")
+        return render_template('query.html', record_number=queryhistoryquery[0].record_number,
+                               user_id=queryhistoryquery[0].user_id,
+                               input_checked=queryhistoryquery[0].input_checked,
+                               results=queryhistoryquery[0].results)
 
 
 setup_db()
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
