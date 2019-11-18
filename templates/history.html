@@ -13,7 +13,7 @@
         {% endif %}
     {% endwith %}
     <h1>Welcome to the WBD220 Query History Page</h1>
-    <form>
+    <form  action="" method="post">
         {{ form.hidden_tag() }}
     <p>
         {{ form.userquery }}<br>
@@ -21,9 +21,11 @@
     </p>
     </form>
     <p> number of queries: {{ numberofquery }}</p>
+
     {% for x in queryhistoryquery %}
+        {% set urlofrequest %}{{ request.host_url }}{% endset %}
     <p>
-        <a href="http://127.0.0.1:5000/history/query{{ x.record_number }}" id="query{{ x.record_number }}">
+        <a href="{{ urlofrequest }}history/query{{x.record_number}}" id="query{{ x.record_number }}">
             "Query{{ x.record_number }}"</a><br>
     </p>
     {% endfor %}

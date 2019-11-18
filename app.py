@@ -360,8 +360,10 @@ def query(var=None):
         name = session['uname']
         queryhistoryquery = SpellCheck.query.filter_by(record_number=var).all()
         flash(f"{queryhistoryquery} {name}")
-        return render_template('query.html', record_number=queryhistoryquery[0].record_number, user_id=name,
-                               input_checked=queryhistoryquery[0].input_checked, results=queryhistoryquery[0].results)
+        return render_template('query.html', record_number=queryhistoryquery[0].record_number,
+                               user_id=queryhistoryquery[0].user_id,
+                               input_checked=queryhistoryquery[0].input_checked,
+                               results=queryhistoryquery[0].results)
 
 
 setup_db()
