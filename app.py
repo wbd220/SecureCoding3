@@ -27,9 +27,12 @@ def setup_db():
     db.drop_all()
     db.create_all()
     # add default users
+
     # add tester (non-admin account)
+    # get tester password from docker secrets:
+    pword = open("/run/secrets/tester_password_data", "r").read().strip()
     uname = 'tester'
-    pword = 'testpass'
+    # get rid of old password definition -- pword = 'testpass'
     hasher = SHA256()
     # Add password to hash algorithm.
     hasher.update(pword.encode('utf-8'))
@@ -49,9 +52,11 @@ def setup_db():
     # Probably want error handling, etc. For this simplified code,
     # we're assuming all is well.
     db.session.commit()
+
     # add tester2 (non-admin account)
     uname = 'tester5'
-    pword = 'testpass'
+    pword = open("/run/secrets/tester5_password_data", "r").read().strip()
+    #  old password definition -- pword = 'testpass'
     hasher = SHA256()
     # Add password to hash algorithm.
     hasher.update(pword.encode('utf-8'))
@@ -71,9 +76,11 @@ def setup_db():
     # Probably want error handling, etc. For this simplified code,
     # we're assuming all is well.
     db.session.commit()
+
     # add admin (admin account)
     uname = 'admin'
-    pword = 'Administrator@1'
+    pword = open("/run/secrets/admin_password_data", "r").read().strip()
+    # old method to define password -- pword = 'Administrator@1'
     hasher = SHA256()
     # Add password to hash algorithm.
     hasher.update(pword.encode('utf-8'))
