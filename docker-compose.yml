@@ -1,34 +1,24 @@
-version: '3'
+version: '3.7'
+secrets:
+  admin_password_data:
+    file: ./admin_password_data.txt
+  tester5_password_data:
+    file: ./tester5_password_data.txt
+  tester_password_data:
+    file: ./tester_password_data.txt
+  csrf_secret_key:
+    file: ./csrf_secret_key.txt
 services:
-  proxy:
-    build: ./proxy
-    networks:
-      - outside
-      - default
   web:
     build: .
+    image: wbd220flask
     ports:
      - "8080:5000"
+    deploy:
+      mode: replicated
+      replicas: 4
     secrets:
-     - admin_password_data
-     - tester5_password_data
-     - tester_password_data
-     - csrf_secret_key
-  
-  secrets:
-    admin_password_data:
-      external: true
-    tester5_password_data:
-      external: true
-    tester_password_data:
-      external: true
-    csrf_secret_key:
-      external: true
-
-  deploy:
-  mode: replicated    
-    replicas: 4
-
-  networks:
-    outside:
-      external: true
+      - source: admin_password_data
+      - source: tester5_password_data
+      - source: tester_password_data
+      - source: csrf_secret_key
