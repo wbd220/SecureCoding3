@@ -1,6 +1,34 @@
 version: '3'
 services:
+  proxy:
+    build: ./proxy
+    networks:
+      - outside
+      - default
   web:
     build: .
     ports:
      - "8080:5000"
+    secrets:
+     - admin_password_data
+     - tester5_password_data
+     - tester_password_data
+     - csrf_secret_key
+  
+  secrets:
+    admin_password_data:
+      external: true
+    tester5_password_data:
+      external: true
+    tester_password_data:
+      external: true
+    csrf_secret_key:
+      external: true
+
+  deploy:
+  mode: replicated    
+    replicas: 4
+
+  networks:
+    outside:
+      external: true
