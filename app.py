@@ -16,8 +16,8 @@ from datetime import datetime
 app = Flask(__name__)
 Bootstrap(app)
 app.config.from_object(__name__)
-# app.config['SECRET_KEY'] = 'bd0c7d441f27d441f27567d441f2b6176a'
-app.config['SECRET_KEY'] = open("/run/secrets/csrf_secret_key", "r").read().strip()
+app.config['SECRET_KEY'] = 'bd0c7d441f27d441f27567d441f2b6176a'
+# app.config['SECRET_KEY'] = open("/run/secrets/csrf_secret_key", "r").read().strip()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
